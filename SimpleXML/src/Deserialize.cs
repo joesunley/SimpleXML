@@ -10,9 +10,12 @@ namespace SimpleXML
     {
         public static XMLDocument Deserialize(string xml)
         {
-            xml = RemoveLineBreaks(xml);
+            xml = RemoveSpecialCharacters(xml);
 
-            List<string> split = xml.Split('>').ToList();
+            List<string> split = xml.Split('>', '<').ToList();
+
+            split.RemoveAll(x => x == "");
+
 
             if (split[0].Contains('?'))
                 split.RemoveAt(0);
@@ -21,33 +24,21 @@ namespace SimpleXML
             var levels = GetLevels(split.ToArray());
 
 
-            XMLNode root = GetNode(levels, 0, 0);
+            XMLNode root = FixInnerText(GetNode(levels, 0, 0));
 
             return new(root);
         }
 
-        private static string RemoveLineBreaks(string input)
+        private static string RemoveSpecialCharacters (string input)
         {
-            bool contains = true;
-
-            while (contains)
-            {
-                int index = input.IndexOf("\n");
-
-                if (index != -1)
-                {
-                    input = input.Remove(index, 1);
-                }
-                else
-                {
-                    contains = false;
-                }
-            }
+            input = input.Replace("\r", "");
+            input = input.Replace("\n", "");
+            input = input.Replace("\t", "");
 
             return input;
         }
 
-        public static XMLAttributeCollection GetAttributes(string input)
+        private static XMLAttributeCollection GetAttributes(string input)
         {
             XMLAttributeCollection attributes = new();
 
@@ -83,33 +74,45 @@ namespace SimpleXML
             List<Tuple<int, string>> t = new();
             int level = 0;
 
-            foreach (string s in input)
+            for (int i = 0; i < input.Length; i++)
             {
-                if (s == "")
-                    continue;
+                string prev = "\t";
+                string next = "\t";
 
-                if (s[1] == '/')
+                if (i != 0)
+                    prev = input[i - 1];
+                string curr = input[i];
+
+                if (i != input.Length - 1)
+                    next = input[i + 1];
+
+                if (curr.First() == '/')
                 {
-                    //t.Add(new(level - 1, s));
-                    level--;
+                    //t.Add(new(level, curr));
+                    if (next.Contains('/'))
+                        level--;
                 }
-                else if (s.Last() == '/')
+                else if (curr.Last() == '/')
                 {
-                    t.Add(new(level, s));
+                    t.Add(new(level, curr));
                 }
                 else
                 {
-                    t.Add(new(level, s));
-                    level++;
+                    string filtered = next.Replace("/", "");
+
+                    t.Add(new(level, curr));
+
+                    if (!prev.Contains(filtered))
+                        level++;
+                    else
+                        level--;
                 }
             }
-
-            
 
             return t.ToArray();
         }
 
-        static XMLNode GetNode(Tuple<int, string>[] levels, int startIndex, int thisLevel)
+        private static XMLNode GetNode(Tuple<int, string>[] levels, int startIndex, int thisLevel)
         {
             XMLNode node = GetNodeNameAttributes(levels[startIndex].Item2);
 
@@ -146,12 +149,35 @@ namespace SimpleXML
             string name;
 
             if (index == -1)
-                name = line.Substring(1);
+                name = line;
             else
-                name = line.Substring(1, line.IndexOf(' ') - 1);
+                name = line.Substring(0, line.IndexOf(' '));
 
             node.Name = name;
             node.Attributes = GetAttributes(line);
+
+            return node;
+        }
+
+        private static XMLNode FixInnerText(XMLNode node)
+        {
+            if (node.Children.Count == 1)
+            {
+                if (node.Children[0].Attributes.Count == 0)
+                {
+                    string innerText = node.Children[0].Name;
+                    node.Children.Clear();
+
+                    node.InnerText = innerText;
+                }
+            }
+            else
+            {
+                for (int i = 0; i < node.Children.Count; i++)
+                {
+                    node.Children[i] = FixInnerText(node.Children[i]);
+                }
+            }
 
             return node;
         }

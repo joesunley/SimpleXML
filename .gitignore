@@ -351,3 +351,4 @@ MigrationBackup/
 
 # Hide Binary Paths
 **/bin/
+**/Tests

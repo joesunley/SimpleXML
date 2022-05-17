@@ -9,27 +9,52 @@ namespace SimpleXML
     public class XMLNode
     {
         private string _name;
-
+        private string? _innerText;
+        private XMLNodeCollection _children;
         public string Name
         {
             get { return _name; }
             set { _name = value; }
         }
 
-        public XMLNodeCollection Children { get; set; }
+        public XMLNodeCollection Children
+        {
+            get => _children;
+
+            set
+            {
+                if (_innerText != null)
+                    throw new Exception("Cannot set Childeren when there is inner text");
+
+                _children = value;
+            }
+        }
         public XMLAttributeCollection Attributes { get; set; }
+
+        public string InnerText
+        {
+            get => _innerText ?? "";
+
+            set
+            {
+                if (_children.Count > 0)
+                    throw new Exception("Cannot set InnerText when there are children");
+
+                _innerText = value;
+            }
+        }
 
         public XMLNode()
         {
             _name = "";
-            Children = new();
+            _children = new();
             Attributes = new();
         }
 
         public XMLNode(string name)
         {
             _name = name;
-            Children = new();
+            _children = new();
             Attributes = new();
         }
 
@@ -39,6 +64,9 @@ namespace SimpleXML
         }
         public void AddChild(XMLNode child)
         {
+            if (_innerText != null)
+                throw new Exception("Cannot add child when there is inner text");
+            
             Children.Add(child);
         }
     }

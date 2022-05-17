@@ -32,16 +32,23 @@ namespace SimpleXML
                 s += $" {attr.Name}=\"{attr.Value}\"";
             }
 
-            if (node.Children.Count == 0)
+            if (node.Children.Count == 0 && node.InnerText == "")
             {
                 s += " />";
             }
             else
             {
-                s += ">";
-                foreach (XMLNode child in node.Children)
+                if (node.Children.Count == 0)
                 {
-                    s += NodeSer(child);
+                    s += ">" + node.InnerText;
+                }
+                else
+                {
+                    s += ">";
+                    foreach (XMLNode child in node.Children)
+                    {
+                        s += NodeSer(child);
+                    }
                 }
                 s += $"</{node.Name}>";
             }
