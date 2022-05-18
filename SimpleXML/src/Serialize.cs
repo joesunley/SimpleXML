@@ -8,10 +8,10 @@ namespace SimpleXML
 {
     public static partial class SimplXML
     {
-        public static void Serialize(XMLDocument doc, string fileName)
+        public static void Serialize(XMLDocument doc, string filePath)
         {
             string s = Serialize(doc);
-            File.WriteAllText(fileName, s);
+            File.WriteAllText(filePath, s);
         }
         public static string Serialize(XMLDocument doc)
         {
