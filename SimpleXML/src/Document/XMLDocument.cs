@@ -1,28 +1,21 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace Sunley;
 
-namespace SimpleXML
+public partial class XMLDocument
 {
-    public partial class XMLDocument
+    private XMLNode _root;
+
+    public XMLNode Root
     {
-        private XMLNode _root;
+        get { return _root; }
+        set { _root = value; }
+    }
 
-        public XMLNode Root
-        {
-            get { return _root; }
-            set { _root = value; }
-        }
-
-        public XMLDocument()
-        {
-            _root = new();
-        }
-        public XMLDocument(XMLNode root)
-        {
-            _root = root;
-        }
+    public XMLDocument()
+    {
+        _root = new();
+    }
+    public XMLDocument(XMLNode root)
+    {
+        _root = root;
     }
 }
